@@ -1,0 +1,39 @@
+###########################################
+# Syntax Coloring Map for IoTDBClient
+###########################################
+
+IoTDBClient	KEYWORD1
+IoTDBResponse	KEYWORD1
+IoTDBHealth	KEYWORD1
+IoTDBServerInfo	KEYWORD1
+
+setServer	KEYWORD2
+setTimeout	KEYWORD2
+loop	KEYWORD2
+
+query	KEYWORD2
+getData	KEYWORD2
+putData	KEYWORD2
+delData	KEYWORD2
+health	KEYWORD2
+info	KEYWORD2
+
+queryAsync	KEYWORD2
+getDataAsync	KEYWORD2
+putDataAsync	KEYWORD2
+delDataAsync	KEYWORD2
+
+getInt	KEYWORD2
+getFloat	KEYWORD2
+getString	KEYWORD2
+putValue	KEYWORD2
+
+success	KEYWORD2
+errorMessage	KEYWORD2
+httpStatus	KEYWORD2
+responseType	KEYWORD2
+count	KEYWORD2
+affected	KEYWORD2
+json	KEYWORD2
+rows	KEYWORD2
+row	KEYWORD2

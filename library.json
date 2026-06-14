@@ -1,0 +1,39 @@
+{
+  "name": "IoTDBClient",
+  "version": "1.0.0",
+  "description": "Client library for IoTDB — a path-based lightweight SQL database with REST API. MQTT-inspired hierarchical records. Supports all CRUD operations, SQL queries, wildcard paths, and both synchronous & asynchronous HTTP modes. Compatible with ESP32, ESP8266, and all Arduino WiFi/Ethernet boards.",
+  "keywords": "iotdb, iot, database, sql, rest, path, mqtt, esp32, esp8266, arduino, client",
+  "homepage": "https://github.com/iotdb/iotdb-esp32",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iotdb/iotdb-esp32.git"
+  },
+  "authors": [
+    {
+      "name": "IoTDB Contributors",
+      "url": "https://github.com/iotdb",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "headers": "IoTDBClient.h",
+  "export": {
+    "include": [
+      "src",
+      "include",
+      "examples",
+      "LICENSE",
+      "README.md",
+      "keywords.txt",
+      "library.properties"
+    ]
+  },
+  "dependencies": {
+    "bblanchon/ArduinoJson": "^7.0.0"
+  },
+  "build": {
+    "libArchive": true
+  }
+}
