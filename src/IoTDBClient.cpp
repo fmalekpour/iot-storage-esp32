@@ -86,7 +86,7 @@ void IoTDBResponse::_parse(const String& responseBody) {
   }
 
   // Check for server-side error: { "error": "..." }
-  if (_json.containsKey("error") && _json["error"].is<const char*>()) {
+  if (_json["error"].is<const char*>()) {
     _success = false;
     _errorMessage = _json["error"].as<String>();
     return;
@@ -100,13 +100,13 @@ void IoTDBResponse::_parse(const String& responseBody) {
     return;
   }
 
-  if (_json.containsKey("type")) {
+  if (_json["type"].is<const char*>()) {
     _responseType = _json["type"].as<String>();
   }
-  if (_json.containsKey("count")) {
+  if (_json["count"].is<int>()) {
     _rowCount = _json["count"].as<int>();
   }
-  if (_json.containsKey("affected")) {
+  if (_json["affected"].is<int>()) {
     _affectedRows = _json["affected"].as<int>();
   }
 }
@@ -466,18 +466,18 @@ IoTDBHealth IoTDBClient::health() {
   DeserializationError err = deserializeJson(doc, body);
   if (err) return h;
 
-  if (doc.containsKey("status")) {
+  if (doc["status"].is<const char*>()) {
     h.ok = (strcmp(doc["status"].as<const char*>(), "ok") == 0);
   }
-  if (doc.containsKey("uptime")) {
+  if (doc["uptime"].is<long>()) {
     h.uptime = doc["uptime"].as<long>();
   }
   _stringCache = "";
-  if (doc.containsKey("backend")) {
+  if (doc["backend"].is<const char*>()) {
     _stringCache = doc["backend"].as<String>();
     h.backend = _stringCache.c_str();
   }
-  if (doc.containsKey("version")) {
+  if (doc["version"].is<const char*>()) {
     static String verCache;
     verCache = doc["version"].as<String>();
     h.version = verCache.c_str();
@@ -503,12 +503,12 @@ IoTDBServerInfo IoTDBClient::info() {
   DeserializationError err = deserializeJson(doc, body);
   if (err) return inf;
 
-  if (doc.containsKey("name")) {
+  if (doc["name"].is<const char*>()) {
     static String nameCache;
     nameCache = doc["name"].as<String>();
     inf.name = nameCache.c_str();
   }
-  if (doc.containsKey("version")) {
+  if (doc["version"].is<const char*>()) {
     static String verCache;
     verCache = doc["version"].as<String>();
     inf.version = verCache.c_str();
@@ -820,13 +820,13 @@ int IoTDBClient::getInt(const char* path, const char* field, int defaultValue) {
   IoTDBResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
-  if (resp.json().containsKey("_path") && !resp.json().containsKey("rows")) {
+  if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
     if (resp.json()[field].is<int>()) {
       return resp.json()[field].as<int>();
     }
   } else if (resp.rows().size() > 0) {
     JsonObjectConst obj = resp.row(0);
-    if (obj.containsKey(field) && obj[field].is<int>()) {
+    if (obj[field].is<int>()) {
       return obj[field].as<int>();
     }
   }
@@ -837,14 +837,13 @@ float IoTDBClient::getFloat(const char* path, const char* field, float defaultVa
   IoTDBResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
-  if (resp.json().containsKey("_path") && !resp.json().containsKey("rows")) {
+  if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
     if (resp.json()[field].is<float>() || resp.json()[field].is<int>()) {
       return resp.json()[field].as<float>();
     }
   } else if (resp.rows().size() > 0) {
     JsonObjectConst obj = resp.row(0);
-    if (obj.containsKey(field) &&
-        (obj[field].is<float>() || obj[field].is<int>())) {
+    if (obj[field].is<float>() || obj[field].is<int>()) {
       return obj[field].as<float>();
     }
   }
@@ -856,14 +855,14 @@ const char* IoTDBClient::getString(const char* path, const char* field,
   IoTDBResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
-  if (resp.json().containsKey("_path") && !resp.json().containsKey("rows")) {
+  if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
     if (resp.json()[field].is<const char*>()) {
       _stringCache = resp.json()[field].as<String>();
       return _stringCache.c_str();
     }
   } else if (resp.rows().size() > 0) {
     JsonObjectConst obj = resp.row(0);
-    if (obj.containsKey(field) && obj[field].is<const char*>()) {
+    if (obj[field].is<const char*>()) {
       _stringCache = obj[field].as<String>();
       return _stringCache.c_str();
     }
@@ -875,7 +874,7 @@ bool IoTDBClient::getBool(const char* path, const char* field, bool defaultValue
   IoTDBResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
-  if (resp.json().containsKey("_path") && !resp.json().containsKey("rows")) {
+  if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
     if (resp.json()[field].is<bool>()) {
       return resp.json()[field].as<bool>();
     }
@@ -885,13 +884,11 @@ bool IoTDBClient::getBool(const char* path, const char* field, bool defaultValue
     }
   } else if (resp.rows().size() > 0) {
     JsonObjectConst obj = resp.row(0);
-    if (obj.containsKey(field)) {
-      if (obj[field].is<bool>()) {
-        return obj[field].as<bool>();
-      }
-      if (obj[field].is<int>()) {
-        return obj[field].as<int>() != 0;
-      }
+    if (obj[field].is<bool>()) {
+      return obj[field].as<bool>();
+    }
+    if (obj[field].is<int>()) {
+      return obj[field].as<int>() != 0;
     }
   }
   return defaultValue;
