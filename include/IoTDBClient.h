@@ -37,7 +37,7 @@ public:
   const JsonDocument& json() const;
 
   /// Rows array (convenience for iterating SELECT results).
-  JsonArray rows() const;
+  JsonArrayConst rows() const;
 
   /// Single row at index (0-based).
   JsonObjectConst row(int index) const;
@@ -160,6 +160,9 @@ public:
   /// The returned pointer is valid only until the next API call.
   const char* getString(const char* path, const char* field, const char* defaultValue = "");
 
+  /// Reads a bool field from a record. Returns defaultValue if not found.
+  bool getBool(const char* path, const char* field, bool defaultValue = false);
+
   /// Convenience: PUT an int value at path.
   bool putValue(const char* path, const char* field, int value);
 
@@ -168,6 +171,9 @@ public:
 
   /// Convenience: PUT a string value at path.
   bool putValue(const char* path, const char* field, const char* value);
+
+  /// Convenience: PUT a bool value at path.
+  bool putValue(const char* path, const char* field, bool value);
 
   // ------------------------------------------------------------------
   // Advanced — direct HTTP access

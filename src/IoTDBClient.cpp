@@ -45,12 +45,12 @@ const JsonDocument& IoTDBResponse::json() const {
   return _json;
 }
 
-JsonArray IoTDBResponse::rows() const {
-  return _json["rows"].as<JsonArray>();
+JsonArrayConst IoTDBResponse::rows() const {
+  return _json["rows"].as<JsonArrayConst>();
 }
 
 JsonObjectConst IoTDBResponse::row(int index) const {
-  JsonArray arr = _json["rows"].as<JsonArray>();
+  JsonArrayConst arr = _json["rows"].as<JsonArrayConst>();
   if (index >= 0 && index < (int)arr.size()) {
     return arr[index].as<JsonObjectConst>();
   }
@@ -871,6 +871,32 @@ const char* IoTDBClient::getString(const char* path, const char* field,
   return defaultValue;
 }
 
+bool IoTDBClient::getBool(const char* path, const char* field, bool defaultValue) {
+  IoTDBResponse resp = getData(path);
+  if (!resp.success()) return defaultValue;
+
+  if (resp.json().containsKey("_path") && !resp.json().containsKey("rows")) {
+    if (resp.json()[field].is<bool>()) {
+      return resp.json()[field].as<bool>();
+    }
+    // Also accept 0/1 int as bool
+    if (resp.json()[field].is<int>()) {
+      return resp.json()[field].as<int>() != 0;
+    }
+  } else if (resp.rows().size() > 0) {
+    JsonObjectConst obj = resp.row(0);
+    if (obj.containsKey(field)) {
+      if (obj[field].is<bool>()) {
+        return obj[field].as<bool>();
+      }
+      if (obj[field].is<int>()) {
+        return obj[field].as<int>() != 0;
+      }
+    }
+  }
+  return defaultValue;
+}
+
 bool IoTDBClient::putValue(const char* path, const char* field, int value) {
   JsonDocument doc;
   doc[field] = value;
@@ -886,6 +912,13 @@ bool IoTDBClient::putValue(const char* path, const char* field, float value) {
 }
 
 bool IoTDBClient::putValue(const char* path, const char* field, const char* value) {
+  JsonDocument doc;
+  doc[field] = value;
+  IoTDBResponse resp = putData(path, doc);
+  return resp.success();
+}
+
+bool IoTDBClient::putValue(const char* path, const char* field, bool value) {
   JsonDocument doc;
   doc[field] = value;
   IoTDBResponse resp = putData(path, doc);

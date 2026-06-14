@@ -191,7 +191,7 @@ Every synchronous method returns an `IoTDBResponse`:
 | `responseType()` | `const char*` | `"select"`, `"insert"`, `"update"`, or `"delete"` |
 | `count()` | `int` | Number of rows (SELECT queries) |
 | `affected()` | `int` | Rows affected (INSERT/UPDATE/DELETE) |
-| `rows()` | `JsonArray` | Rows array for iteration |
+| `rows()` | `JsonArrayConst` | Rows array for iteration |
 | `row(int)` | `JsonObjectConst` | Single row by index (0-based) |
 | `json()` | `JsonDocument&` | Full JSON for power users |
 
@@ -245,11 +245,13 @@ Typed access without JSON boilerplate. Ideal for simple single-field sensor reco
 iotdb.putValue("/sensors/temp",    "value", 23.5f);        // float
 iotdb.putValue("/sensors/temp",    "unit",  "C");          // string
 iotdb.putValue("/dev/light/kitchen", "state", 1);          // int
+iotdb.putValue("/dev/light/kitchen", "on", true);          // bool
 
 // Read
 float       temp  = iotdb.getFloat("/sensors/temp",   "value", -999.0f);
 const char* unit  = iotdb.getString("/sensors/temp",  "unit",  "?");
 int         state = iotdb.getInt("/dev/light/kitchen", "state", -1);
+bool        on    = iotdb.getBool("/dev/light/kitchen", "on", false);
 ```
 
 The third parameter is the fallback value if the record/field is missing.

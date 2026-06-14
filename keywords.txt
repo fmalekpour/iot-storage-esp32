@@ -26,6 +26,7 @@ delDataAsync	KEYWORD2
 getInt	KEYWORD2
 getFloat	KEYWORD2
 getString	KEYWORD2
+getBool	KEYWORD2
 putValue	KEYWORD2
 
 success	KEYWORD2
