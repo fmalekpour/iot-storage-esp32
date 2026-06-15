@@ -56,7 +56,7 @@ IoTStorageSingleton::LoadStatus IoTStorageSingleton::load() {
   // The server may return the record directly (no "rows" wrapper) for single-path GET
   if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
     // Single record returned inline — copy all fields except _path, _type
-    JsonObjectConst src = resp.json();
+    JsonObjectConst src = resp.json().as<JsonObjectConst>();
     for (JsonPairConst kv : src) {
       const char* key = kv.key().c_str();
       if (strcmp(key, "_path") != 0 &&
