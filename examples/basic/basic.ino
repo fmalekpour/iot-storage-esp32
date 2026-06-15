@@ -3,18 +3,18 @@
 #else
 #include <WiFi.h>
 #endif
-#include <IoTDBClient.h>
+#include <IoTStorageClient.h>
 
 // ---- WiFi credentials ----
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 
-// ---- IoTDB server ----
-const char* IOTDB_HOST = "192.168.1.100";  // Change to your server IP
-const uint16_t IOTDB_PORT = 9123;
+// ---- IoT Storage server ----
+const char* IOT_STORAGE_HOST = "192.168.1.100";  // Change to your server IP
+const uint16_t IOT_STORAGE_PORT = 9123;
 
 WiFiClient wifiClient;
-IoTDBClient iotdb(wifiClient);
+IoTStorageClient iotStorage(wifiClient);
 
 void setup() {
   Serial.begin(115200);
@@ -31,13 +31,13 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  // Configure IoTDB client
-  iotdb.setServer(IOTDB_HOST, IOTDB_PORT);
-  iotdb.setTimeout(5000);
+  // Configure IoT Storage client
+  iotStorage.setServer(IOT_STORAGE_HOST, IOT_STORAGE_PORT);
+  iotStorage.setTimeout(5000);
 
   // ---- 1. Health check ----
   Serial.println("\n--- Health Check ---");
-  IoTDBHealth h = iotdb.health();
+  IoTStorageHealth h = iotStorage.health();
   if (h.ok) {
     Serial.println("Server is healthy!");
     Serial.print("  Uptime: "); Serial.println(h.uptime);
@@ -55,7 +55,7 @@ void setup() {
   doc["unit"] = "C";
   doc["status"] = "active";
 
-  IoTDBResponse resp = iotdb.putData("/sensors/temp", doc);
+  IoTStorageResponse resp = iotStorage.putData("/sensors/temp", doc);
   if (resp.success()) {
     Serial.println("Data inserted successfully!");
     Serial.print("  Path: ");
@@ -69,7 +69,7 @@ void setup() {
 
   // ---- 3. GET data ----
   Serial.println("\n--- Get Data ---");
-  resp = iotdb.getData("/sensors/temp");
+  resp = iotStorage.getData("/sensors/temp");
   if (resp.success()) {
     Serial.println("Data retrieved successfully!");
     Serial.print("  Path: ");
@@ -87,13 +87,13 @@ void setup() {
   Serial.println("\n--- Convenience Methods ---");
 
   // Insert humidity
-  iotdb.putValue("/sensors/humidity", "value", 65.0f);
-  iotdb.putValue("/sensors/humidity", "unit", "%");
+  iotStorage.putValue("/sensors/humidity", "value", 65.0f);
+  iotStorage.putValue("/sensors/humidity", "unit", "%");
 
   // Read back using typed methods
-  float temp = iotdb.getFloat("/sensors/temp", "value", -999.0f);
-  float humidity = iotdb.getFloat("/sensors/humidity", "value", -999.0f);
-  const char* unit = iotdb.getString("/sensors/temp", "unit", "?");
+  float temp = iotStorage.getFloat("/sensors/temp", "value", -999.0f);
+  float humidity = iotStorage.getFloat("/sensors/humidity", "value", -999.0f);
+  const char* unit = iotStorage.getString("/sensors/temp", "unit", "?");
 
   Serial.print("  Temperature: "); Serial.print(temp);
   Serial.print(" "); Serial.println(unit);
@@ -102,7 +102,7 @@ void setup() {
 
   // ---- 5. DELETE data ----
   Serial.println("\n--- Delete Data ---");
-  resp = iotdb.delData("/sensors/humidity");
+  resp = iotStorage.delData("/sensors/humidity");
   if (resp.success()) {
     Serial.print("Deleted "); Serial.print(resp.affected());
     Serial.println(" record(s)");

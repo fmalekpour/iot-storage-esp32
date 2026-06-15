@@ -1,11 +1,11 @@
 ###########################################
-# Syntax Coloring Map for IoTDBClient
+# Syntax Coloring Map for IoTStorageClient
 ###########################################
 
-IoTDBClient	KEYWORD1
-IoTDBResponse	KEYWORD1
-IoTDBHealth	KEYWORD1
-IoTDBServerInfo	KEYWORD1
+IoTStorageClient	KEYWORD1
+IoTStorageResponse	KEYWORD1
+IoTStorageHealth	KEYWORD1
+IoTStorageServerInfo	KEYWORD1
 
 setServer	KEYWORD2
 setTimeout	KEYWORD2

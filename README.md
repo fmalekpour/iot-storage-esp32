@@ -1,6 +1,6 @@
-# IoTDBClient — PlatformIO Library for IoTDB
+# IoTStorageClient — PlatformIO Library for IoT Storage
 
-**C++ client library for [IoTDB](https://github.com/iotdb/iotdb) — a path-based lightweight SQL database with REST API.**
+**C++ client library for [IoT Storage](https://github.com/iot-storage/iot-storage) — a path-based lightweight SQL database with REST API.**
 
 Think MQTT topics meets SQL. Every path is a record. Query with SQL. Built for IoT and edge deployments, now accessible from your ESP32, ESP8266, and Arduino projects.
 
@@ -12,7 +12,7 @@ Think MQTT topics meets SQL. Every path is a record. Query with SQL. Built for I
 - 📡 **SQL support** — INSERT, SELECT, UPDATE, DELETE with WHERE, ORDER BY, LIMIT, GROUP BY, aggregations
 - 🌿 **MQTT-style wildcard paths** — `+` (single-level) and `#` (multi-level)
 - ⚡ **Sync & Async modes** — blocking for simple scripts, callback-based non-blocking for responsive systems
-- 🎯 **Typed convenience methods** — `getInt()`, `getFloat()`, `getString()`, `putValue()`
+- 🎯 **Typed convenience methods** — `getInt()`, `getFloat()`, `getString()`, `getBool()`, `putValue()`
 - 📦 **Single dependency** — ArduinoJson ^7.0
 - 🌍 **Cross-platform** — ESP32, ESP8266, Arduino MKR, Nano RP2040, and any board with a `Client` implementation
 - 🔐 **SSL-ready** — Pass `WiFiClientSecure` for HTTPS
@@ -27,10 +27,17 @@ Add to your `platformio.ini`:
 
 ```ini
 lib_deps =
-    iotdb/IoTDBClient @ ^1.0.0
+    iot-storage/IoTStorageClient @ ^1.0.0
 ```
 
-Then `#include <IoTDBClient.h>` in your sketch.
+Or install directly from GitHub:
+
+```ini
+lib_deps =
+    https://github.com/fmalekpour/iot-storage-esp32.git
+```
+
+Then `#include <IoTStorageClient.h>` in your sketch.
 
 ### Manual (Arduino IDE / other)
 
@@ -44,10 +51,10 @@ Then `#include <IoTDBClient.h>` in your sketch.
 
 ```cpp
 #include <WiFi.h>
-#include <IoTDBClient.h>
+#include <IoTStorageClient.h>
 
 WiFiClient wifi;
-IoTDBClient db(wifi);
+IoTStorageClient db(wifi);
 
 void setup() {
   Serial.begin(115200);
@@ -76,22 +83,22 @@ void loop() { }
 
 ### Constructor & Configuration
 
-#### `IoTDBClient(Client& client)`
+#### `IoTStorageClient(Client& client)`
 
 Create a client bound to any Arduino `Client` instance. You manage the client's lifetime.
 
 ```cpp
 WiFiClient wifiClient;
-IoTDBClient iotdb(wifiClient);
+IoTStorageClient iotStorage(wifiClient);
 
 // For HTTPS:
 // WiFiClientSecure sslClient;
-// IoTDBClient iotdb(sslClient);
+// IoTStorageClient iotStorage(sslClient);
 ```
 
 #### `void setServer(const char* host, uint16_t port = 9123)`
 
-Set the IoTDB server address. Must be called before any API calls.
+Set the IoT Storage server address. Must be called before any API calls.
 
 #### `void setTimeout(uint32_t ms)`
 
@@ -103,12 +110,12 @@ Set HTTP request timeout in milliseconds. Default: `5000`.
 
 All synchronous methods return immediately after the HTTP round-trip completes.
 
-#### `IoTDBResponse query(const char* sql)`
+#### `IoTStorageResponse query(const char* sql)`
 
 Execute a raw SQL statement via `POST /query`.
 
 ```cpp
-IoTDBResponse resp = iotdb.query(
+IoTStorageResponse resp = iotStorage.query(
   "SELECT * FROM \"/sensors/+\" WHERE value > 20 ORDER BY value DESC LIMIT 10"
 );
 if (resp.success()) {
@@ -121,22 +128,22 @@ if (resp.success()) {
 }
 ```
 
-#### `IoTDBResponse getData(const char* path)`
+#### `IoTStorageResponse getData(const char* path)`
 
 Fetch record(s) via `GET /data/:path`. Supports wildcards `+` and `#`.
 
 ```cpp
 // Exact path — returns single record
-IoTDBResponse resp = iotdb.getData("/sensors/temp");
+IoTStorageResponse resp = iotStorage.getData("/sensors/temp");
 
 // Single wildcard — returns all direct children
-resp = iotdb.getData("/sensors/+");
+resp = iotStorage.getData("/sensors/+");
 
 // Multi-level wildcard — returns all descendants
-resp = iotdb.getData("/sensors/#");
+resp = iotStorage.getData("/sensors/#");
 ```
 
-#### `IoTDBResponse putData(const char* path, const JsonDocument& data)`
+#### `IoTStorageResponse putData(const char* path, const JsonDocument& data)`
 
 Upsert a record via `PUT /data/:path`. Wildcards are NOT allowed.
 
@@ -145,43 +152,43 @@ JsonDocument doc;
 doc["value"] = 23.5;
 doc["unit"] = "C";
 doc["status"] = "active";
-IoTDBResponse resp = iotdb.putData("/sensors/temp", doc);
+IoTStorageResponse resp = iotStorage.putData("/sensors/temp", doc);
 ```
 
-#### `IoTDBResponse delData(const char* path)`
+#### `IoTStorageResponse delData(const char* path)`
 
 Delete record(s) via `DELETE /data/:path`. Supports wildcards.
 
 ```cpp
-IoTDBResponse resp = iotdb.delData("/sensors/temp");
+IoTStorageResponse resp = iotStorage.delData("/sensors/temp");
 Serial.printf("Deleted %d records\n", resp.affected());
 ```
 
-#### `IoTDBHealth health()`
+#### `IoTStorageHealth health()`
 
 Check server health via `GET /health`.
 
 ```cpp
-IoTDBHealth h = iotdb.health();
+IoTStorageHealth h = iotStorage.health();
 if (h.ok) {
   Serial.printf("Server up for %ld seconds, version %s\n", h.uptime, h.version);
 }
 ```
 
-#### `IoTDBServerInfo info()`
+#### `IoTStorageServerInfo info()`
 
 Get server metadata via `GET /`.
 
 ```cpp
-IoTDBServerInfo inf = iotdb.info();
+IoTStorageServerInfo inf = iotStorage.info();
 Serial.printf("Connected to %s v%s\n", inf.name, inf.version);
 ```
 
 ---
 
-### IoTDBResponse
+### IoTStorageResponse
 
-Every synchronous method returns an `IoTDBResponse`:
+Every synchronous method returns an `IoTStorageResponse`:
 
 | Method | Returns | Description |
 |--------|---------|-------------|
@@ -202,23 +209,23 @@ Every synchronous method returns an `IoTDBResponse`:
 Fire requests without blocking. Call `loop()` in your main `loop()` to process them. Callbacks fire when responses arrive.
 
 ```cpp
-void onData(IoTDBResponse& resp) {
+void onData(IoTStorageResponse& resp) {
   if (resp.success()) {
     Serial.println("Got data!");
   }
 }
 
 void setup() {
-  // ... WiFi + iotdb configuration ...
+  // ... WiFi + iotStorage configuration ...
 
   // Queue async requests
-  iotdb.queryAsync("SELECT * FROM \"/sensors/+\"", onData);
-  iotdb.getDataAsync("/sensors/temp", onData);
+  iotStorage.queryAsync("SELECT * FROM \"/sensors/+\"", onData);
+  iotStorage.getDataAsync("/sensors/temp", onData);
 }
 
 void loop() {
-  iotdb.loop();   // <-- Drive the async state machine
-  delay(10);      // Avoid busy-waiting
+  iotStorage.loop();   // <-- Drive the async state machine
+  delay(10);           // Avoid busy-waiting
 }
 ```
 
@@ -242,16 +249,16 @@ Typed access without JSON boilerplate. Ideal for simple single-field sensor reco
 
 ```cpp
 // Write
-iotdb.putValue("/sensors/temp",    "value", 23.5f);        // float
-iotdb.putValue("/sensors/temp",    "unit",  "C");          // string
-iotdb.putValue("/dev/light/kitchen", "state", 1);          // int
-iotdb.putValue("/dev/light/kitchen", "on", true);          // bool
+iotStorage.putValue("/sensors/temp",     "value", 23.5f);         // float
+iotStorage.putValue("/sensors/temp",     "unit",  "C");           // string
+iotStorage.putValue("/dev/light/kitchen", "state", 1);            // int
+iotStorage.putValue("/dev/light/kitchen", "on",    true);         // bool
 
 // Read
-float       temp  = iotdb.getFloat("/sensors/temp",   "value", -999.0f);
-const char* unit  = iotdb.getString("/sensors/temp",  "unit",  "?");
-int         state = iotdb.getInt("/dev/light/kitchen", "state", -1);
-bool        on    = iotdb.getBool("/dev/light/kitchen", "on", false);
+float       temp  = iotStorage.getFloat("/sensors/temp",    "value", -999.0f);
+const char* unit  = iotStorage.getString("/sensors/temp",   "unit",  "?");
+int         state = iotStorage.getInt("/dev/light/kitchen",  "state", -1);
+bool        on    = iotStorage.getBool("/dev/light/kitchen", "on",    false);
 ```
 
 The third parameter is the fallback value if the record/field is missing.
@@ -260,30 +267,30 @@ The third parameter is the fallback value if the record/field is missing.
 
 ## SQL Quick Reference
 
-The `query()` method accepts standard SQL passed through to IoTDB:
+The `query()` method accepts standard SQL passed through to IoT Storage:
 
 ```cpp
 // INSERT
-iotdb.query("INSERT INTO \"/sensors/temp\" (value, unit) VALUES (23.5, 'C')");
-iotdb.query("INSERT INTO \"/sensors/temp\" (value, unit) VALUES (24.1, 'C'), (22.8, 'C')");
+iotStorage.query("INSERT INTO \"/sensors/temp\" (value, unit) VALUES (23.5, 'C')");
+iotStorage.query("INSERT INTO \"/sensors/temp\" (value, unit) VALUES (24.1, 'C'), (22.8, 'C')");
 
 // SELECT
-iotdb.query("SELECT * FROM \"/sensors/temp\"");
-iotdb.query("SELECT * FROM \"/sensors/+\" WHERE value > 20");
-iotdb.query("SELECT * FROM \"/sensors/#\" ORDER BY value DESC LIMIT 10");
+iotStorage.query("SELECT * FROM \"/sensors/temp\"");
+iotStorage.query("SELECT * FROM \"/sensors/+\" WHERE value > 20");
+iotStorage.query("SELECT * FROM \"/sensors/#\" ORDER BY value DESC LIMIT 10");
 
 // UPDATE
-iotdb.query("UPDATE \"/sensors/temp\" SET unit = 'F' WHERE value = 22.1");
+iotStorage.query("UPDATE \"/sensors/temp\" SET unit = 'F' WHERE value = 22.1");
 
 // DELETE
-iotdb.query("DELETE FROM \"/sensors/+\" WHERE value IS NULL");
+iotStorage.query("DELETE FROM \"/sensors/+\" WHERE value IS NULL");
 
 // Aggregation
-iotdb.query("SELECT AVG(value), COUNT(*) FROM \"/sensors/+\"");
-iotdb.query("SELECT unit, AVG(value) FROM \"/sensors/+\" GROUP BY unit");
+iotStorage.query("SELECT AVG(value), COUNT(*) FROM \"/sensors/+\"");
+iotStorage.query("SELECT unit, AVG(value) FROM \"/sensors/+\" GROUP BY unit");
 ```
 
-For the full SQL reference, see the [IoTDB README](https://github.com/iotdb/iotdb).
+For the full SQL reference, see the [IoT Storage README](https://github.com/iot-storage/iot-storage).
 
 ---
 
@@ -309,7 +316,7 @@ Any board that runs Arduino framework and has a `Client` implementation:
 |---------|---------|----------|
 | [ArduinoJson](https://github.com/bblanchon/ArduinoJson) | ^7.0.0 | ✅ Yes |
 
-PlatformIO installs this automatically when you add IoTDBClient as a dependency.
+PlatformIO installs this automatically when you add IoTStorageClient as a dependency.
 
 ---
 
@@ -327,12 +334,12 @@ See the `examples/` directory:
 
 ## License
 
-MIT © IoTDB Contributors. See [LICENSE](LICENSE).
+MIT © IoT Storage Contributors. See [LICENSE](LICENSE).
 
 ---
 
 ## Links
 
-- [IoTDB Server](https://github.com/iotdb/iotdb) — The database this client connects to
+- [IoT Storage Server](https://github.com/iot-storage/iot-storage) — The database this client connects to
 - [PlatformIO Registry](https://registry.platformio.org/) — Find this library
 - [ArduinoJson](https://arduinojson.org/) — JSON library used internally

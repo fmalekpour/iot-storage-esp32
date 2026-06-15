@@ -1,11 +1,11 @@
-#include "IoTDBClient.h"
+#include "IoTStorageClient.h"
 #include <string.h>
 
 // ============================================================================
-// IoTDBResponse
+// IoTStorageResponse
 // ============================================================================
 
-IoTDBResponse::IoTDBResponse()
+IoTStorageResponse::IoTStorageResponse()
   : _success(false)
   , _httpStatus(0)
   , _rowCount(0)
@@ -13,43 +13,43 @@ IoTDBResponse::IoTDBResponse()
 {
 }
 
-bool IoTDBResponse::success() const {
+bool IoTStorageResponse::success() const {
   return _success;
 }
 
-const char* IoTDBResponse::errorMessage() const {
+const char* IoTStorageResponse::errorMessage() const {
   return _errorMessage.c_str();
 }
 
-int IoTDBResponse::httpStatus() const {
+int IoTStorageResponse::httpStatus() const {
   return _httpStatus;
 }
 
-const char* IoTDBResponse::responseType() const {
+const char* IoTStorageResponse::responseType() const {
   return _responseType.c_str();
 }
 
-int IoTDBResponse::count() const {
+int IoTStorageResponse::count() const {
   return _rowCount;
 }
 
-int IoTDBResponse::affected() const {
+int IoTStorageResponse::affected() const {
   return _affectedRows;
 }
 
-JsonDocument& IoTDBResponse::json() {
+JsonDocument& IoTStorageResponse::json() {
   return _json;
 }
 
-const JsonDocument& IoTDBResponse::json() const {
+const JsonDocument& IoTStorageResponse::json() const {
   return _json;
 }
 
-JsonArrayConst IoTDBResponse::rows() const {
+JsonArrayConst IoTStorageResponse::rows() const {
   return _json["rows"].as<JsonArrayConst>();
 }
 
-JsonObjectConst IoTDBResponse::row(int index) const {
+JsonObjectConst IoTStorageResponse::row(int index) const {
   JsonArrayConst arr = _json["rows"].as<JsonArrayConst>();
   if (index >= 0 && index < (int)arr.size()) {
     return arr[index].as<JsonObjectConst>();
@@ -57,16 +57,16 @@ JsonObjectConst IoTDBResponse::row(int index) const {
   return JsonObjectConst();
 }
 
-void IoTDBResponse::_setError(const char* msg) {
+void IoTStorageResponse::_setError(const char* msg) {
   _success = false;
   _errorMessage = msg ? msg : "";
 }
 
-void IoTDBResponse::_setHttpStatus(int code) {
+void IoTStorageResponse::_setHttpStatus(int code) {
   _httpStatus = code;
 }
 
-void IoTDBResponse::_parse(const String& responseBody) {
+void IoTStorageResponse::_parse(const String& responseBody) {
   _json.clear();
 
   if (responseBody.length() == 0) {
@@ -113,10 +113,10 @@ void IoTDBResponse::_parse(const String& responseBody) {
 
 
 // ============================================================================
-// IoTDBClient — Construction & Configuration
+// IoTStorageClient — Construction & Configuration
 // ============================================================================
 
-IoTDBClient::IoTDBClient(Client& client)
+IoTStorageClient::IoTStorageClient(Client& client)
   : _client(client)
   , _port(9123)
   , _timeoutMs(5000)
@@ -131,25 +131,25 @@ IoTDBClient::IoTDBClient(Client& client)
 {
 }
 
-void IoTDBClient::setServer(const char* host, uint16_t port) {
+void IoTStorageClient::setServer(const char* host, uint16_t port) {
   _host = host ? host : "";
   _port = port;
   _serverSet = (host != nullptr && strlen(host) > 0);
 }
 
-void IoTDBClient::setTimeout(uint32_t ms) {
+void IoTStorageClient::setTimeout(uint32_t ms) {
   _timeoutMs = ms;
 }
 
-uint32_t IoTDBClient::timeout() const {
+uint32_t IoTStorageClient::timeout() const {
   return _timeoutMs;
 }
 
-const char* IoTDBClient::getHost() const {
+const char* IoTStorageClient::getHost() const {
   return _host.c_str();
 }
 
-uint16_t IoTDBClient::getPort() const {
+uint16_t IoTStorageClient::getPort() const {
   return _port;
 }
 
@@ -158,7 +158,7 @@ uint16_t IoTDBClient::getPort() const {
 // URL Path Encoding
 // ============================================================================
 
-String IoTDBClient::_urlEncodePath(const char* path) {
+String IoTStorageClient::_urlEncodePath(const char* path) {
   String result;
   result.reserve(strlen(path) + 16);
 
@@ -212,7 +212,7 @@ static String _httpRoundTrip(Client& client,
   client.println(" HTTP/1.1");
   client.print("Host: ");
   client.println(host);
-  client.println("User-Agent: IoTDBClient/1.0.0 (Arduino)");
+  client.println("User-Agent: IoTStorageClient/1.0.0 (Arduino)");
   client.println("Connection: close");
   client.println("Accept: application/json");
 
@@ -325,8 +325,8 @@ static String _httpRoundTrip(Client& client,
 // Synchronous API
 // ============================================================================
 
-IoTDBResponse IoTDBClient::query(const char* sql) {
-  IoTDBResponse resp;
+IoTStorageResponse IoTStorageClient::query(const char* sql) {
+  IoTStorageResponse resp;
 
   if (!_serverSet || _host.length() == 0) {
     resp._setError("Server not configured. Call setServer() first.");
@@ -359,8 +359,8 @@ IoTDBResponse IoTDBClient::query(const char* sql) {
   return resp;
 }
 
-IoTDBResponse IoTDBClient::getData(const char* path) {
-  IoTDBResponse resp;
+IoTStorageResponse IoTStorageClient::getData(const char* path) {
+  IoTStorageResponse resp;
 
   if (!_serverSet || _host.length() == 0) {
     resp._setError("Server not configured. Call setServer() first.");
@@ -387,8 +387,8 @@ IoTDBResponse IoTDBClient::getData(const char* path) {
   return resp;
 }
 
-IoTDBResponse IoTDBClient::putData(const char* path, const JsonDocument& data) {
-  IoTDBResponse resp;
+IoTStorageResponse IoTStorageClient::putData(const char* path, const JsonDocument& data) {
+  IoTStorageResponse resp;
 
   if (!_serverSet || _host.length() == 0) {
     resp._setError("Server not configured. Call setServer() first.");
@@ -418,8 +418,8 @@ IoTDBResponse IoTDBClient::putData(const char* path, const JsonDocument& data) {
   return resp;
 }
 
-IoTDBResponse IoTDBClient::delData(const char* path) {
-  IoTDBResponse resp;
+IoTStorageResponse IoTStorageClient::delData(const char* path) {
+  IoTStorageResponse resp;
 
   if (!_serverSet || _host.length() == 0) {
     resp._setError("Server not configured. Call setServer() first.");
@@ -446,8 +446,8 @@ IoTDBResponse IoTDBClient::delData(const char* path) {
   return resp;
 }
 
-IoTDBHealth IoTDBClient::health() {
-  IoTDBHealth h;
+IoTStorageHealth IoTStorageClient::health() {
+  IoTStorageHealth h;
   h.ok       = false;
   h.uptime   = 0;
   h.backend  = "";
@@ -485,8 +485,8 @@ IoTDBHealth IoTDBClient::health() {
   return h;
 }
 
-IoTDBServerInfo IoTDBClient::info() {
-  IoTDBServerInfo inf;
+IoTStorageServerInfo IoTStorageClient::info() {
+  IoTStorageServerInfo inf;
   inf.name    = "";
   inf.version = "";
 
@@ -516,7 +516,7 @@ IoTDBServerInfo IoTDBClient::info() {
   return inf;
 }
 
-String IoTDBClient::httpRequest(const char* method, const char* path,
+String IoTStorageClient::httpRequest(const char* method, const char* path,
                                  const char* body) {
   int httpCode = 0;
   return _httpRoundTrip(_client, _host.c_str(), _port,
@@ -529,7 +529,7 @@ String IoTDBClient::httpRequest(const char* method, const char* path,
 // Asynchronous API — Queue + State Machine
 // ============================================================================
 
-bool IoTDBClient::_enqueueRequest(const char* method, const char* path,
+bool IoTStorageClient::_enqueueRequest(const char* method, const char* path,
                                    const char* body, AsyncCallback callback) {
   if (_queueCount() >= MAX_QUEUE) {
     return false;
@@ -545,7 +545,7 @@ bool IoTDBClient::_enqueueRequest(const char* method, const char* path,
   return true;
 }
 
-bool IoTDBClient::_dequeueRequest(AsyncRequest& req) {
+bool IoTStorageClient::_dequeueRequest(AsyncRequest& req) {
   if (_queueCount() == 0) return false;
 
   req = _queue[_queueHead];
@@ -553,14 +553,14 @@ bool IoTDBClient::_dequeueRequest(AsyncRequest& req) {
   return true;
 }
 
-int IoTDBClient::_queueCount() const {
+int IoTStorageClient::_queueCount() const {
   return (_queueTail - _queueHead + MAX_QUEUE) % MAX_QUEUE;
 }
 
-void IoTDBClient::queryAsync(const char* sql, AsyncCallback callback) {
+void IoTStorageClient::queryAsync(const char* sql, AsyncCallback callback) {
   if (!sql || strlen(sql) == 0) {
     if (callback) {
-      IoTDBResponse resp;
+      IoTStorageResponse resp;
       resp._setError("SQL query string is empty");
       callback(resp);
     }
@@ -574,48 +574,48 @@ void IoTDBClient::queryAsync(const char* sql, AsyncCallback callback) {
 
   if (!_enqueueRequest("POST", "/query", jsonBody.c_str(), callback)) {
     if (callback) {
-      IoTDBResponse resp;
+      IoTStorageResponse resp;
       resp._setError("Async queue full (max 4 pending requests)");
       callback(resp);
     }
   }
 }
 
-void IoTDBClient::getDataAsync(const char* path, AsyncCallback callback) {
+void IoTStorageClient::getDataAsync(const char* path, AsyncCallback callback) {
   if (!_enqueueRequest("GET", path, nullptr, callback)) {
     if (callback) {
-      IoTDBResponse resp;
+      IoTStorageResponse resp;
       resp._setError("Async queue full (max 4 pending requests)");
       callback(resp);
     }
   }
 }
 
-void IoTDBClient::putDataAsync(const char* path, const JsonDocument& data,
+void IoTStorageClient::putDataAsync(const char* path, const JsonDocument& data,
                                 AsyncCallback callback) {
   String jsonBody;
   serializeJson(data, jsonBody);
 
   if (!_enqueueRequest("PUT", path, jsonBody.c_str(), callback)) {
     if (callback) {
-      IoTDBResponse resp;
+      IoTStorageResponse resp;
       resp._setError("Async queue full (max 4 pending requests)");
       callback(resp);
     }
   }
 }
 
-void IoTDBClient::delDataAsync(const char* path, AsyncCallback callback) {
+void IoTStorageClient::delDataAsync(const char* path, AsyncCallback callback) {
   if (!_enqueueRequest("DELETE", path, nullptr, callback)) {
     if (callback) {
-      IoTDBResponse resp;
+      IoTStorageResponse resp;
       resp._setError("Async queue full (max 4 pending requests)");
       callback(resp);
     }
   }
 }
 
-void IoTDBClient::loop() {
+void IoTStorageClient::loop() {
   switch (_state) {
 
     case ASYNC_IDLE: {
@@ -656,7 +656,7 @@ void IoTDBClient::loop() {
 
       _client.print("Host: ");
       _client.println(_host);
-      _client.println("User-Agent: IoTDBClient/1.0.0 (Arduino)");
+      _client.println("User-Agent: IoTStorageClient/1.0.0 (Arduino)");
       _client.println("Connection: close");
       _client.println("Accept: application/json");
 
@@ -790,7 +790,7 @@ void IoTDBClient::loop() {
     }
 
     case ASYNC_COMPLETE: {
-      _asyncResponse = IoTDBResponse();
+      _asyncResponse = IoTStorageResponse();
       _asyncResponse._setHttpStatus(200);
       _asyncResponse._parse(_responseBuffer);
 
@@ -816,8 +816,8 @@ void IoTDBClient::loop() {
 // Convenience Methods
 // ============================================================================
 
-int IoTDBClient::getInt(const char* path, const char* field, int defaultValue) {
-  IoTDBResponse resp = getData(path);
+int IoTStorageClient::getInt(const char* path, const char* field, int defaultValue) {
+  IoTStorageResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
   if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
@@ -833,8 +833,8 @@ int IoTDBClient::getInt(const char* path, const char* field, int defaultValue) {
   return defaultValue;
 }
 
-float IoTDBClient::getFloat(const char* path, const char* field, float defaultValue) {
-  IoTDBResponse resp = getData(path);
+float IoTStorageClient::getFloat(const char* path, const char* field, float defaultValue) {
+  IoTStorageResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
   if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
@@ -850,9 +850,9 @@ float IoTDBClient::getFloat(const char* path, const char* field, float defaultVa
   return defaultValue;
 }
 
-const char* IoTDBClient::getString(const char* path, const char* field,
+const char* IoTStorageClient::getString(const char* path, const char* field,
                                     const char* defaultValue) {
-  IoTDBResponse resp = getData(path);
+  IoTStorageResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
   if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
@@ -870,8 +870,8 @@ const char* IoTDBClient::getString(const char* path, const char* field,
   return defaultValue;
 }
 
-bool IoTDBClient::getBool(const char* path, const char* field, bool defaultValue) {
-  IoTDBResponse resp = getData(path);
+bool IoTStorageClient::getBool(const char* path, const char* field, bool defaultValue) {
+  IoTStorageResponse resp = getData(path);
   if (!resp.success()) return defaultValue;
 
   if (!resp.json()["_path"].isNull() && resp.json()["rows"].isNull()) {
@@ -894,30 +894,30 @@ bool IoTDBClient::getBool(const char* path, const char* field, bool defaultValue
   return defaultValue;
 }
 
-bool IoTDBClient::putValue(const char* path, const char* field, int value) {
+bool IoTStorageClient::putValue(const char* path, const char* field, int value) {
   JsonDocument doc;
   doc[field] = value;
-  IoTDBResponse resp = putData(path, doc);
+  IoTStorageResponse resp = putData(path, doc);
   return resp.success();
 }
 
-bool IoTDBClient::putValue(const char* path, const char* field, float value) {
+bool IoTStorageClient::putValue(const char* path, const char* field, float value) {
   JsonDocument doc;
   doc[field] = value;
-  IoTDBResponse resp = putData(path, doc);
+  IoTStorageResponse resp = putData(path, doc);
   return resp.success();
 }
 
-bool IoTDBClient::putValue(const char* path, const char* field, const char* value) {
+bool IoTStorageClient::putValue(const char* path, const char* field, const char* value) {
   JsonDocument doc;
   doc[field] = value;
-  IoTDBResponse resp = putData(path, doc);
+  IoTStorageResponse resp = putData(path, doc);
   return resp.success();
 }
 
-bool IoTDBClient::putValue(const char* path, const char* field, bool value) {
+bool IoTStorageClient::putValue(const char* path, const char* field, bool value) {
   JsonDocument doc;
   doc[field] = value;
-  IoTDBResponse resp = putData(path, doc);
+  IoTStorageResponse resp = putData(path, doc);
   return resp.success();
 }

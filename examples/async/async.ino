@@ -3,24 +3,24 @@
 #else
 #include <WiFi.h>
 #endif
-#include <IoTDBClient.h>
+#include <IoTStorageClient.h>
 
 // ---- WiFi credentials ----
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 
-// ---- IoTDB server ----
-const char* IOTDB_HOST = "192.168.1.100";
-const uint16_t IOTDB_PORT = 9123;
+// ---- IoT Storage server ----
+const char* IOT_STORAGE_HOST = "192.168.1.100";
+const uint16_t IOT_STORAGE_PORT = 9123;
 
 WiFiClient wifiClient;
-IoTDBClient iotdb(wifiClient);
+IoTStorageClient iotStorage(wifiClient);
 
 // Track whether WiFi is connected
 bool wifiReady = false;
 
 // ---- Callback for async query ----
-void onSensorInsert(IoTDBResponse& resp) {
+void onSensorInsert(IoTStorageResponse& resp) {
   Serial.println("\n[ASYNC] Sensor insert callback fired!");
   if (resp.success()) {
     Serial.print("  Inserted "); Serial.print(resp.affected());
@@ -31,14 +31,14 @@ void onSensorInsert(IoTDBResponse& resp) {
   }
 
   // Chain: now fetch the data
-  iotdb.getDataAsync("/sensors/temp", onSensorRead);
+  iotStorage.getDataAsync("/sensors/temp", onSensorRead);
 }
 
 // ---- Callback for async GET ----
-void onSensorRead(IoTDBResponse& resp) {
+void onSensorRead(IoTStorageResponse& resp) {
   Serial.println("\n[ASYNC] Sensor read callback fired!");
   if (resp.success()) {
-    if (resp.json().containsKey("_path")) {
+    if (!resp.json()["_path"].isNull()) {
       Serial.print("  Path: ");
       Serial.println(resp.json()["_path"].as<const char*>());
       Serial.print("  Value: ");
@@ -73,15 +73,15 @@ void setup() {
     return;
   }
 
-  // Configure IoTDB client
-  iotdb.setServer(IOTDB_HOST, IOTDB_PORT);
-  iotdb.setTimeout(5000);
+  // Configure IoT Storage client
+  iotStorage.setServer(IOT_STORAGE_HOST, IOT_STORAGE_PORT);
+  iotStorage.setTimeout(5000);
 
   // ---- Fire async requests ----
   Serial.println("\nFiring async requests...");
 
   // 1. Sync health check (health is not available as async — use sync for this)
-  IoTDBHealth h = iotdb.health();
+  IoTStorageHealth h = iotStorage.health();
   if (h.ok) {
     Serial.println("[SYNC] Server is healthy!");
   } else {
@@ -89,7 +89,7 @@ void setup() {
   }
 
   // 2. Async sensor insert — chains to onSensorRead via callback
-  iotdb.queryAsync(
+  iotStorage.queryAsync(
     "INSERT INTO \"/sensors/temp\" (value, unit) VALUES (24.0, 'C')",
     onSensorInsert
   );
@@ -99,10 +99,10 @@ void setup() {
 
 void loop() {
   // Drive the async state machine
-  iotdb.loop();
+  iotStorage.loop();
 
   // Your main code can do other things here —
-  // the IoTDB client will process async requests in the background
+  // the IoT Storage client will process async requests in the background
   // without blocking your main loop.
 
   delay(10);  // Small delay to avoid busy-waiting

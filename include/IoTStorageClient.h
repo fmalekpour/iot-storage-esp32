@@ -1,5 +1,5 @@
-#ifndef IOTDB_CLIENT_H
-#define IOTDB_CLIENT_H
+#ifndef IOTSTORAGE_CLIENT_H
+#define IOTSTORAGE_CLIENT_H
 
 #include <Arduino.h>
 #include <Client.h>
@@ -7,12 +7,12 @@
 #include <functional>
 
 // ============================================================================
-// IoTDBResponse — Wraps every API response from the IoTDB server
+// IoTStorageResponse — Wraps every API response from the IoT Storage server
 // ============================================================================
 
-class IoTDBResponse {
+class IoTStorageResponse {
 public:
-  IoTDBResponse();
+  IoTStorageResponse();
 
   /// Whether the HTTP request succeeded and the server returned no error.
   bool success() const;
@@ -42,7 +42,7 @@ public:
   /// Single row at index (0-based).
   JsonObjectConst row(int index) const;
 
-  // ---- Internal (used by IoTDBClient) ----
+  // ---- Internal (used by IoTStorageClient) ----
   void _setError(const char* msg);
   void _setHttpStatus(int code);
   void _parse(const String& responseBody);
@@ -58,10 +58,10 @@ private:
 };
 
 // ============================================================================
-// IoTDBHealth — Server health information
+// IoTStorageHealth — Server health information
 // ============================================================================
 
-struct IoTDBHealth {
+struct IoTStorageHealth {
   bool        ok;
   long        uptime;
   const char* backend;
@@ -69,19 +69,19 @@ struct IoTDBHealth {
 };
 
 // ============================================================================
-// IoTDBServerInfo — Server metadata
+// IoTStorageServerInfo — Server metadata
 // ============================================================================
 
-struct IoTDBServerInfo {
+struct IoTStorageServerInfo {
   const char* name;
   const char* version;
 };
 
 // ============================================================================
-// IoTDBClient — Main client for the IoTDB REST API
+// IoTStorageClient — Main client for the IoT Storage REST API
 // ============================================================================
 
-class IoTDBClient {
+class IoTStorageClient {
 public:
   // ------------------------------------------------------------------
   // Construction & Configuration
@@ -89,9 +89,9 @@ public:
 
   /// Construct with any Arduino Client (WiFiClient, WiFiClientSecure,
   /// EthernetClient, etc.). The caller manages the client's lifetime.
-  explicit IoTDBClient(Client& client);
+  explicit IoTStorageClient(Client& client);
 
-  /// Set the IoTDB server host and port (default port = 9123).
+  /// Set the IoT Storage server host and port (default port = 9123).
   void setServer(const char* host, uint16_t port = 9123);
 
   /// Set HTTP request timeout in milliseconds (default = 5000).
@@ -106,25 +106,25 @@ public:
 
   /// Execute a raw SQL statement via POST /query.
   /// Returns the parsed response with rows / affected / error info.
-  IoTDBResponse query(const char* sql);
+  IoTStorageResponse query(const char* sql);
 
   /// Fetch record(s) at path via GET /data/:path.
   /// Supports wildcards '+' and '#' (auto URL-encoded).
-  IoTDBResponse getData(const char* path);
+  IoTStorageResponse getData(const char* path);
 
   /// Upsert a record at path via PUT /data/:path.
   /// Wildcards are NOT allowed in the path (server returns 400).
-  IoTDBResponse putData(const char* path, const JsonDocument& data);
+  IoTStorageResponse putData(const char* path, const JsonDocument& data);
 
   /// Delete record(s) at path via DELETE /data/:path.
   /// Supports wildcards '+' and '#'.
-  IoTDBResponse delData(const char* path);
+  IoTStorageResponse delData(const char* path);
 
   /// Health-check via GET /health.
-  IoTDBHealth health();
+  IoTStorageHealth health();
 
   /// Server info via GET /.
-  IoTDBServerInfo info();
+  IoTStorageServerInfo info();
 
   // ------------------------------------------------------------------
   // Asynchronous API — non-blocking, callback-based
@@ -134,7 +134,7 @@ public:
   // Pending requests are processed one at a time in FIFO order.
   // ------------------------------------------------------------------
 
-  typedef std::function<void(IoTDBResponse&)> AsyncCallback;
+  typedef std::function<void(IoTStorageResponse&)> AsyncCallback;
 
   void queryAsync(const char* sql, AsyncCallback callback);
   void getDataAsync(const char* path, AsyncCallback callback);
@@ -228,7 +228,7 @@ private:
   bool         _readingBody;
   size_t       _contentLength;
   bool         _chunked;
-  IoTDBResponse _asyncResponse;
+  IoTStorageResponse _asyncResponse;
   AsyncCallback _currentCallback;  // callback for the in-progress async request
 
   bool _enqueueRequest(const char* method, const char* path,
@@ -240,4 +240,4 @@ private:
   String _urlEncodePath(const char* path);
 };
 
-#endif // IOTDB_CLIENT_H
+#endif // IOTSTORAGE_CLIENT_H
