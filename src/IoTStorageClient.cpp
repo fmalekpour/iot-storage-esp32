@@ -212,7 +212,7 @@ static String _httpRoundTrip(Client& client,
   client.println(" HTTP/1.1");
   client.print("Host: ");
   client.println(host);
-  client.println("User-Agent: IoTStorageClient/1.0.0 (Arduino)");
+  client.println("User-Agent: IoTStorageClient/1.0.1 (Arduino)");
   client.println("Connection: close");
   client.println("Accept: application/json");
 
@@ -656,7 +656,7 @@ void IoTStorageClient::loop() {
 
       _client.print("Host: ");
       _client.println(_host);
-      _client.println("User-Agent: IoTStorageClient/1.0.0 (Arduino)");
+      _client.println("User-Agent: IoTStorageClient/1.0.1 (Arduino)");
       _client.println("Connection: close");
       _client.println("Accept: application/json");
 

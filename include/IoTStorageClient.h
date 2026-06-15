@@ -240,4 +240,68 @@ private:
   String _urlEncodePath(const char* path);
 };
 
+// ============================================================================
+// IoTStorageSingleton — Single-row settings wrapper around IoTStorageClient
+//
+// Designed for production use: define your settings fields, call load() to
+// pull from the server, use setValue()/getXxx() to read/write, call save()
+// to persist. load() distinguishes "record not found" (use defaults) from
+// connection/operation errors.
+// ============================================================================
+
+class IoTStorageSingleton {
+public:
+  /// Result of a load() call.
+  enum LoadStatus {
+    LOAD_OK,        ///< Record exists on server — loaded successfully.
+    LOAD_NOT_FOUND, ///< Record does NOT exist on server — set defaults & save().
+    LOAD_ERROR      ///< Connection or server error — check client/server state.
+  };
+
+  /// Bind this singleton to a client and a data path (e.g. "/settings/mydevice").
+  IoTStorageSingleton(IoTStorageClient& client, const char* path);
+
+  /// Fetch the record from the server. Call this early in setup().
+  /// - LOAD_OK        → record existed; fields are populated. Call getXxx().
+  /// - LOAD_NOT_FOUND → no record on server. Set your defaults & call save().
+  /// - LOAD_ERROR     → network or server problem. Inspect client/server.
+  LoadStatus load();
+
+  /// Persist the current in-memory document to the server (PUT /data/:path).
+  /// Returns true on success, false on any error.
+  bool save();
+
+  // ---- Typed getters (read from the in-memory document) ----
+
+  int         getInt(const char* field, int defaultValue = 0);
+  float       getFloat(const char* field, float defaultValue = 0.0f);
+  const char* getString(const char* field, const char* defaultValue = "");
+  bool        getBool(const char* field, bool defaultValue = false);
+
+  // ---- Typed setters (write to the in-memory document) ----
+
+  void setValue(const char* field, int value);
+  void setValue(const char* field, float value);
+  void setValue(const char* field, const char* value);
+  void setValue(const char* field, bool value);
+
+  /// Direct access to the underlying JSON document for advanced use cases.
+  JsonDocument& data();
+  const JsonDocument& data() const;
+
+  /// Quick existence check — performs a GET /data/:path to the server.
+  /// Returns true if the record exists (200), false if 404 or connection error.
+  bool exists();
+
+  /// The configured data path (e.g. "/settings/mydevice").
+  const char* path() const;
+
+private:
+  IoTStorageClient& _client;
+  String            _path;
+  JsonDocument      _data;
+  String            _stringCache;
+  bool              _loaded;
+};
+
 #endif // IOTSTORAGE_CLIENT_H

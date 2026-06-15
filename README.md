@@ -13,7 +13,8 @@ Think MQTT topics meets SQL. Every path is a record. Query with SQL. Built for I
 - 🌿 **MQTT-style wildcard paths** — `+` (single-level) and `#` (multi-level)
 - ⚡ **Sync & Async modes** — blocking for simple scripts, callback-based non-blocking for responsive systems
 - 🎯 **Typed convenience methods** — `getInt()`, `getFloat()`, `getString()`, `getBool()`, `putValue()`
-- 📦 **Single dependency** — ArduinoJson ^7.0
+- �️ **Settings Singleton** — `IoTStorageSingleton` — load/save single-row settings with built-in "first boot" detection
+- �📦 **Single dependency** — ArduinoJson ^7.0
 - 🌍 **Cross-platform** — ESP32, ESP8266, Arduino MKR, Nano RP2040, and any board with a `Client` implementation
 - 🔐 **SSL-ready** — Pass `WiFiClientSecure` for HTTPS
 
@@ -27,7 +28,7 @@ Add to your `platformio.ini`:
 
 ```ini
 lib_deps =
-    iot-storage/IoTStorageClient @ ^1.0.0
+    iot-storage/IoTStorageClient @ ^1.0.1
 ```
 
 Or install directly from GitHub:
@@ -265,6 +266,102 @@ The third parameter is the fallback value if the record/field is missing.
 
 ---
 
+### IoTStorageSingleton — Production Settings Wrapper
+
+`IoTStorageSingleton` manages a **single JSON row** at a path (e.g. `/settings/mydevice`).
+It keeps an in-memory document — reads and writes are local, `save()` persists to the server.
+`load()` distinguishes three states: record exists, record not found (first boot), and connection error.
+
+#### `IoTStorageSingleton(IoTStorageClient& client, const char* path)`
+
+Bind to an existing `IoTStorageClient` and a data path.
+
+```cpp
+WiFiClient wifi;
+IoTStorageClient db(wifi);
+db.setServer("192.168.1.100", 9123);
+
+IoTStorageSingleton settings(db, "/settings/living-room");
+```
+
+#### `LoadStatus load()`
+
+Fetch the record from the server. Returns one of three values:
+
+| Return | Meaning | What to do |
+|--------|---------|------------|
+| `LOAD_OK` | Record exists on server — fields populated | Call `getInt()` / `getFloat()` / … |
+| `LOAD_NOT_FOUND` | No record on server (404) — first boot | Set defaults with `setValue()`, then `save()` |
+| `LOAD_ERROR` | Connection or server error | Use compile-time fallbacks, retry later |
+
+```cpp
+IoTStorageSingleton::LoadStatus s = settings.load();
+
+if (s == IoTStorageSingleton::LOAD_OK) {
+  // Record exists — read values
+  int brightness = settings.getInt("brightness", 75);
+  float targetTemp = settings.getFloat("target_temp", 22.0);
+
+} else if (s == IoTStorageSingleton::LOAD_NOT_FOUND) {
+  // First boot — set defaults and save
+  settings.setValue("brightness", 75);
+  settings.setValue("target_temp", 22.0f);
+  settings.setValue("mode", "auto");
+  settings.save();
+
+} else {
+  // Network or server error
+  Serial.println("Failed to load settings (connection error).");
+}
+```
+
+#### `bool save()`
+
+Persist the in-memory document to the server via `PUT /data/:path`. Returns `true` on success.
+
+```cpp
+settings.setValue("brightness", 50);
+settings.save();
+```
+
+#### Typed Getters (in-memory, no HTTP)
+
+| Method | Returns | Default |
+|--------|---------|---------|
+| `getInt(field, default)` | `int` | `0` |
+| `getFloat(field, default)` | `float` | `0.0f` |
+| `getString(field, default)` | `const char*` | `""` |
+| `getBool(field, default)` | `bool` | `false` |
+
+#### Typed Setters (in-memory, no HTTP)
+
+| Method | Type |
+|--------|------|
+| `setValue(field, int)` | `int` |
+| `setValue(field, float)` | `float` |
+| `setValue(field, const char*)` | `const char*` |
+| `setValue(field, bool)` | `bool` |
+
+#### `bool exists()`
+
+Quick server-side check — performs `GET /data/:path`. Returns `true` if the record exists (200), `false` if 404 or connection error.
+
+```cpp
+if (settings.exists()) {
+  Serial.println("Settings record exists on server.");
+}
+```
+
+#### `JsonDocument& data()` / `const JsonDocument& data() const`
+
+Direct access to the underlying JSON document for advanced use cases.
+
+#### `const char* path() const`
+
+Returns the configured data path.
+
+---
+
 ## SQL Quick Reference
 
 The `query()` method accepts standard SQL passed through to IoT Storage:
@@ -329,6 +426,7 @@ See the `examples/` directory:
 | [`basic`](examples/basic/basic.ino) | WiFi connect, health check, PUT/GET/DELETE, convenience methods |
 | [`sql_query`](examples/sql_query/sql_query.ino) | INSERT, SELECT with WHERE/ORDER BY, aggregation, UPDATE, DELETE |
 | [`async`](examples/async/async.ino) | Async callback-based requests, chaining, non-blocking loop |
+| [`singleton_settings`](examples/singleton_settings/singleton_settings.ino) | IoTStorageSingleton — first-boot detection, load/save defaults |
 
 ---
 
