@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "description": "Client library for IoT Storage — a path-based lightweight SQL database with REST API. MQTT-inspired hierarchical records. Supports all CRUD operations, SQL queries, wildcard paths, and both synchronous & asynchronous HTTP modes. Compatible with ESP32, ESP8266, and all Arduino WiFi/Ethernet boards.",
   "keywords": "iot-storage, iot, database, sql, rest, path, mqtt, esp32, esp8266, arduino, client",
-  "homepage": "https://github.com/iot-storage/iot-storage-esp32",
+  "homepage": "https://github.com/fmalekpour/iot-storage-esp32",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iot-storage/iot-storage-esp32.git"
+    "url": "https://github.com/fmalekpour/iot-storage-esp32.git"
   },
   "authors": [
     {
-      "name": "IoT Storage Contributors",
-      "url": "https://github.com/iot-storage",
+      "name": "Farhad Malekpour",
+      "url": "https://github.com/fmalekpour",
       "maintainer": true
     }
   ],
