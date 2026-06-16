@@ -28,7 +28,7 @@ Add to your `platformio.ini`:
 
 ```ini
 lib_deps =
-    iot-storage/IoTStorageClient @ ^1.0.1
+    iot-storage/IoTStorageClient @ ^1.0.2
 ```
 
 Or install directly from GitHub:
