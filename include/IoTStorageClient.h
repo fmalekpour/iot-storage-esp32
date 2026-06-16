@@ -286,16 +286,16 @@ public:
   void setValue(const char* field, bool value);
 
   // ---- Shortcuts with String keys (for dynamic field names) ----
-  int getInt(const String& field, int defaultValue = 0) { return getInt(field.c_str(), defaultValue); }
-  float getFloat(const String& field, float defaultValue = 0.0f) { return getFloat(field.c_str(), defaultValue); }
-  const char* getString(const String& field, const char* defaultValue = "") { return getString(field.c_str(), defaultValue); }
-  String getString(const String& field, const char* defaultValue = "") { return String(getString(field.c_str(), defaultValue)); }
-  bool getBool(const String& field, bool defaultValue = false) { return getBool(field.c_str(), defaultValue); }
+  int getInt(const String& field, int defaultValue = 0) 						{ return getInt(field.c_str(), defaultValue); }
+  float getFloat(const String& field, float defaultValue = 0.0f) 				{ return getFloat(field.c_str(), defaultValue); }
+  const char* getString(const String& field, const char* defaultValue = "") 	{ return getString(field.c_str(), defaultValue); }
+  bool getBool(const String& field, bool defaultValue = false) 					{ return getBool(field.c_str(), defaultValue); }
 
-  void setValue(const String& field, int value) { setValue(field.c_str(), value); }
-  void setValue(const String& field, float value) { setValue(field.c_str(), value); }
-  void setValue(const String& field, const String& value) { setValue(field.c_str(), value.c_str()); }
-  void setValue(const String& field, bool value) { setValue(field.c_str(), value); }
+  void setValue(const String& field, int value) 			{ setValue(field.c_str(), value); }
+  void setValue(const String& field, float value) 			{ setValue(field.c_str(), value); }
+  void setValue(const String& field, const char* value) 	{ setValue(field.c_str(), value); }
+  void setValue(const String& field, const String& value) 	{ setValue(field.c_str(), value.c_str()); }
+  void setValue(const String& field, bool value) 			{ setValue(field.c_str(), value); }
 
   /// Direct access to the underlying JSON document for advanced use cases.
   JsonDocument& data();
