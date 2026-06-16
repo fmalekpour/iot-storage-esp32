@@ -294,6 +294,7 @@ public:
   void setValue(const String& field, int value) 			{ setValue(field.c_str(), value); }
   void setValue(const String& field, float value) 			{ setValue(field.c_str(), value); }
   void setValue(const String& field, const char* value) 	{ setValue(field.c_str(), value); }
+  void setValue(const char* field, const String& value) 	{ setValue(field, value.c_str()); }
   void setValue(const String& field, const String& value) 	{ setValue(field.c_str(), value.c_str()); }
   void setValue(const String& field, bool value) 			{ setValue(field.c_str(), value); }
 
